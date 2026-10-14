@@ -1,0 +1,19 @@
+{
+  "title": "Vanilla Video",
+  "description": "Use the browser's controls for video",
+  "icon": { "background_color": "#ff62ce" },
+  "help": "https://github.com/AprilSylph/XKit-Rewritten/wiki/Features#vanilla-video",
+  "relatedTerms": [ "Video Downloader", "autoplay" ],
+  "preferences": {
+    "defaultVolume": {
+      "type": "percent",
+      "label": "Default Volume",
+      "default": 100
+    },
+    "tumblrTvEnable": {
+      "type": "checkbox",
+      "label": "Enable on Tumblr TV",
+      "default": false
+    }
+  }
+}

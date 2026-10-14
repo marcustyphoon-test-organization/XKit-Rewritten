@@ -1,0 +1,17 @@
+{
+  "title": "Anti-Capitalism",
+  "description": "Hide advertisement containers",
+  "icon": {
+    "color": "#ffd800",
+    "background_color": "#cd0000"
+  },
+  "help": "https://github.com/AprilSylph/XKit-Rewritten/wiki/Features#anti-capitalism",
+  "relatedTerms": [ "sponsored" ],
+  "preferences": {
+    "includeBlazed": {
+      "type": "checkbox",
+      "label": "Hide Blazed posts",
+      "default": true
+    }
+  }
+}

@@ -1,0 +1,88 @@
+import { removeElementsByClassName } from './cleanup.js';
+import { keyToCss } from './css_map.js';
+import { button, div, span } from './dom.js';
+import { getIcon } from './icons.js';
+import { displayInlineBlockUnlessDisabledAttr } from './interface.js';
+import { timelineObject } from './react_props.js';
+
+// Remove outdated buttons when loading module
+removeElementsByClassName('xkit-control-button-container');
+
+/**
+ * Create a button template that can be cloned with cloneControlButton() for inserting into the controls in a post's footer.
+ * @param {string} featureName The internal name of a feature calling this utility (e.g. `"quick_tags"`)
+ * @param {string} buttonClass An extra class to identify the extension that added the button
+ * @param {string} label Descriptive text to be set as the button aria-label property and tooltip
+ * @returns {HTMLDivElement} A button that can be cloned with cloneControlButton()
+ */
+export const createControlButtonTemplate = function (featureName, buttonClass, label = '') {
+  return span({ class: `xkit-control-button-container ${buttonClass}`, [displayInlineBlockUnlessDisabledAttr]: '' }, [
+    button({ class: 'xkit-control-button', 'aria-label': label, title: label }, [
+      span({ class: 'xkit-control-button-inner', tabindex: '-1' }, [
+        getIcon(featureName),
+      ]),
+    ]),
+  ]);
+};
+
+/**
+ * Create a deep-level clone of a button template that is ready to add to the page.
+ * @param {HTMLDivElement} template A button template as returned by createControlButtonTemplate()
+ * @param {object} events An object of DOM Event names and handler functions,
+ *                          e.g. { click: () => { alert('Hello!'); } }
+ * @param {boolean} disabled Whether to disable the button clone
+ * @returns {HTMLDivElement} A clone of the button template, with the specified event handlers attached
+ */
+export const cloneControlButton = function (template, events, disabled = false) {
+  const newButtonContainer = template.cloneNode(true);
+  const newButton = newButtonContainer.querySelector('button');
+  Object.entries(events).forEach(([type, listener]) => newButton.addEventListener(type, listener));
+  newButton.disabled = disabled;
+  return newButtonContainer;
+};
+
+const secondaryFooterRowClass = 'xkit-controls-row';
+
+/**
+ * Add a fallback secondary footer row above the footer control buttons, similar to the one on most editable posts.
+ * @param {HTMLElement} postElement The target post element
+ * @returns {HTMLDivElement} The inserted element
+ */
+const addSecondaryFooterRow = postElement => {
+  const element =
+    postElement.querySelector(`.${secondaryFooterRowClass}`) ||
+    div({ class: secondaryFooterRowClass });
+
+  element.isConnected || postElement.querySelector('footer').before(element);
+  return element;
+};
+
+/**
+ * Insert a control button into the post footer.
+ * @param {HTMLElement} postElement The target post element
+ * @param {HTMLDivElement} clonedControlButton Control button element to insert
+ * @param {string} buttonClass Button HTML class
+ * @returns {Promise<void>} Resolves when finished
+ */
+export const insertControlButton = async (postElement, clonedControlButton, buttonClass) => {
+  const existingButton = postElement.querySelector(`.${buttonClass}`);
+  if (existingButton !== null) { return; }
+
+  const { community } = await timelineObject(postElement);
+  const legacyEditControlIcon = postElement.querySelector(`${keyToCss('controlIcon')}:has(a[href*="/edit/"] use[href="#managed-icon__edit"])`);
+  const newEditControlIcon = postElement.querySelector('a[href*="/edit/"]:has(use[href="#managed-icon__ds-pencil-outline-24"])');
+
+  if (community) {
+    clonedControlButton.classList.add('in-community');
+    postElement.querySelector(keyToCss('controls')).append(clonedControlButton);
+  } else if (legacyEditControlIcon) {
+    clonedControlButton.classList.add('in-legacy-footer');
+    legacyEditControlIcon.before(clonedControlButton);
+  } else if (newEditControlIcon) {
+    clonedControlButton.classList.add('in-new-footer');
+    newEditControlIcon.before(clonedControlButton);
+  } else {
+    clonedControlButton.classList.add('in-new-footer');
+    addSecondaryFooterRow(postElement).prepend(clonedControlButton);
+  }
+};

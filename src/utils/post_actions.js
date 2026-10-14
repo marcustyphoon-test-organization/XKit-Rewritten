@@ -1,0 +1,55 @@
+import { removeElementsByClassName } from './cleanup.js';
+import { keyToCss } from './css_map.js';
+import { button, label } from './dom.js';
+import { getIcon } from './icons.js';
+import { displayBlockUnlessDisabledAttr } from './interface.js';
+import { pageModifications } from './mutations.js';
+
+// Remove outdated post options when loading module
+removeElementsByClassName('xkit-post-option');
+
+const postOptions = {};
+
+const addPostOptions = ([postFormButton]) => {
+  if (!postFormButton) { return; }
+
+  const postActions = postFormButton.parentElement;
+  const inAskForm = postActions.closest(keyToCss('form'))?.querySelector(keyToCss('anonToggle'));
+
+  postFormButton.before(
+    ...Object.keys(postOptions)
+      .sort()
+      .map(id => postOptions[id])
+      .filter(({ showInAskForm }) => showInAskForm ? true : !inAskForm)
+      .map(({ element }) => element)
+      .filter(element => !postActions.contains(element)),
+  );
+};
+
+pageModifications.register(keyToCss('postFormButton'), addPostOptions);
+
+/**
+ * Create and register a button to add to the new post form
+ * @param {object} options Destructured
+ * @param {string} options.featureName The internal name of a feature calling this utility (e.g. `"quick_tags"`)
+ * @param {(event: PointerEvent) => void} options.onclick Click handler function for this button
+ * @param {boolean} [options.showInAskForm] Whether to show the button in the ask form
+ */
+export const registerPostOption = async function ({ featureName, onclick, showInAskForm = false }) {
+  postOptions[featureName] = {
+    element: label({ class: 'xkit-post-option', [displayBlockUnlessDisabledAttr]: '' }, [
+      button({ click: onclick }, [getIcon(featureName)]),
+    ]),
+    showInAskForm,
+  };
+
+  pageModifications.trigger(addPostOptions);
+};
+
+/**
+ * @param {string} featureName The internal name of a feature which previously called `registerPostOption` (e.g. `"quick_tags"`)
+ */
+export const unregisterPostOption = featureName => {
+  postOptions[featureName]?.element?.remove();
+  delete postOptions[featureName];
+};

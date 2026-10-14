@@ -1,0 +1,104 @@
+import { removeElementsById } from './cleanup.js';
+import { dom } from './dom.js';
+
+// Remove any outdated modal when loading module
+removeElementsById('xkit-modal');
+
+let lastFocusedElement;
+
+/**
+ * Show a takeover prompt to the user
+ * @param {object} options Destructured
+ * @param {string} [options.title] Prompt title
+ * @param {(string|Node)[]} [options.message] Nodes to be displayed in the modal, to be used as prompts or non-submit inputs
+ * @param {(HTMLElement)[]} [options.buttons] Array of buttons to be displayed in the modal
+ */
+export const showModal = ({ title, message = [], buttons = [] }) => {
+  const modalElement = dom('div', {
+    id: 'xkit-modal',
+    tabindex: '-1',
+    role: 'dialog',
+    'aria-modal': 'true',
+
+    // prevents Tumblr's trapFocusInsideGlass function from stealing focus when opened from mobile drawer
+    'data-skip-glass-focus-trap': '',
+  }, null, [
+    dom('style', null, null, ['body { overflow: hidden; }']),
+    title ? dom('h3', { class: 'title' }, null, [title]) : '',
+    dom('div', { class: 'message' }, null, message),
+    dom('div', { class: 'buttons' }, null, buttons),
+  ]);
+
+  hideModal();
+  document.getElementById('base-container')?.appendChild(modalElement);
+
+  lastFocusedElement = document.activeElement;
+  modalElement.focus();
+};
+
+/**
+ * Hide the current takeover prompt.
+ */
+export const hideModal = () => {
+  removeElementsById('xkit-modal');
+  lastFocusedElement?.focus();
+  lastFocusedElement = null;
+};
+
+export const modalCancelButton = dom('button', null, { click: hideModal }, ['Cancel']);
+export const modalCompleteButton = dom('button', { class: 'blue' }, { click: hideModal }, ['OK']);
+
+/**
+ * Show a takeover prompt to the user with details about a thrown exception.
+ * @param {Error} exception Thrown exception to describe
+ */
+export const showErrorModal = exception => {
+  console.error('XKit Rewritten error:', exception);
+
+  showModal({
+    title: 'Something went wrong.',
+    message: [
+      [
+        exception.body?.errors?.[0]?.detail,
+        exception.errors?.[0]?.detail,
+        exception.message,
+        browser.runtime?.id === undefined && 'Please refresh this browser tab!',
+      ]
+        .filter(Boolean)
+        .join('\n\n'),
+    ],
+    buttons: [modalCompleteButton],
+  });
+};
+
+/**
+ * Create a version of a function that shows a takeover prompt to the user if it throws.
+ * @template {function (...T): R} Callback, T, R
+ * @param {Callback} func A function
+ * @returns {Callback} A version of the function with explicit error handling
+ */
+export const withModalOnError = func =>
+  async (...args) => {
+    try {
+      return await func(...args);
+    } catch (exception) {
+      showErrorModal(exception);
+    }
+  };
+
+export const showContextInvalidatedModal = () =>
+  showModal({
+    title: 'XKit Rewritten has become unloaded.',
+    message: [
+      'If this is unexpected, this is likely due to your browser automatically applying an XKit version update.',
+      '\n\n',
+      'Outdated XKit modifications will be updated/removed after you refresh this Tumblr tab.',
+    ],
+    buttons: [
+      dom('button', null, { click: hideModal }, ['Close']),
+      dom('button', { class: 'blue' }, { click: () => location.reload() }, ['Refresh Now']),
+    ],
+  });
+
+export const createTagSpan = tag => dom('span', { class: 'xkit-modal-tag' }, null, [tag]);
+export const createBlogSpan = name => dom('span', { class: 'xkit-modal-blog' }, null, [name]);

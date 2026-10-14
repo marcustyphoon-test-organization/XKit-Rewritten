@@ -1,0 +1,13 @@
+{
+  "title": "Tag Tracking+",
+  "description": "Unread counts for followed tags",
+  "icon": { "background_color": "#c538ff" },
+  "help": "https://github.com/AprilSylph/XKit-Rewritten/wiki/Features#tag-tracking",
+  "preferences": {
+    "onlyShowNew": {
+      "type": "checkbox",
+      "label": "Only show tags with new posts",
+      "default": false
+    }
+  }
+}

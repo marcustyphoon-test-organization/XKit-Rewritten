@@ -1,0 +1,19 @@
+{
+  "title": "Collapsed Queue",
+  "description": "Shorten posts in your queue or drafts",
+  "icon": { "background_color": "#f1615f" },
+  "help": "https://github.com/AprilSylph/XKit-Rewritten/wiki/Features#collapsed-queue",
+  "relatedTerms": [ "Drafts Plus", "Drafts+", "Enhanced Queue" ],
+  "preferences": {
+    "runInQueue": {
+      "type": "checkbox",
+      "label": "Run on the queue page",
+      "default": true
+    },
+    "runInDrafts": {
+      "type": "checkbox",
+      "label": "Run on the drafts page",
+      "default": false
+    }
+  }
+}

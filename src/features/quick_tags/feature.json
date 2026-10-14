@@ -1,0 +1,28 @@
+{
+  "title": "Quick Tags",
+  "description": "Add tags to posts more easily",
+  "icon": { "background_color": "#eeb92b" },
+  "help": "https://github.com/AprilSylph/XKit-Rewritten/wiki/Features#quick-tags",
+  "relatedTerms": [ "Auto Tagger", "AutoTagger", "XInbox" ],
+  "preferences": {
+    "originalPostTag": {
+      "type": "text",
+      "label": "Original post tag",
+      "default": ""
+    },
+    "answerTag": {
+      "type": "text",
+      "label": "Answer tag",
+      "default": ""
+    },
+    "autoTagAsker": {
+      "type": "checkbox",
+      "label": "Automatically tag asker when answering",
+      "default": false
+    },
+    "tagBundles": {
+      "type": "component",
+      "src": "/features/quick_tags/options/index.js"
+    }
+  }
+}
